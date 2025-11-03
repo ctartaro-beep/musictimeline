@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Music Timeline</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif; }
+        .scroll-smooth { scroll-behavior: smooth; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        function ChevronLeft(props) {
+            return (
+                <svg xmlns="http://www.w3.org/2000/svg" width={props.size || 24} height={props.size || 24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="15 18 9 12 15 6"></polyline>
+                </svg>
+            );
+        }
+
+        function ChevronRight(props) {
+            return (
+                <svg xmlns="http://www.w3.org/2000/svg" width={props.size || 24} height={props.size || 24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+            );
+        }
+
+        function MusicTimeline() {
+            const [timelineData, setTimelineData] = useState([]);
+            const [filteredData, setFilteredData] = useState([]);
+            const [selectedArtist, setSelectedArtist] = useState('All');
+            const [loading, setLoading] = useState(false);
+            const [albumArt, setAlbumArt] = useState({});
+
+            // All your music data
+            const allData = [
+                {year:1986,age:5,artist:"Bon Jovi",album:"Slippery When Wet",device:"Stereo",mediaType:"Record",season:"Season"},{year:1987,age:6,artist:"Billy Joel",album:"Greatest Hits Vol 1 & 2",device:"Boom Box",mediaType:"CD",season:"Season"},{year:1987,age:6,artist:"The Beatles",album:"Sgt. Peppers Lonely Hearts Club Band",device:"Stereo",mediaType:"CD",season:"Season"},{year:1987,age:6,artist:"Foreigner",album:"Greatest Hits",device:"Car",mediaType:"Tape",season:"Summer"},{year:1988,age:7,artist:"Beethoven",album:"Beethoven's 5th",device:"Car",mediaType:"Tape",season:"Season"},{year:1989,age:8,artist:"Guns & Roses",album:"Appetite for Destruction",device:"Stereo",mediaType:"Tape",season:"Fall"},{year:1991,age:10,artist:"Nirvana",album:"Nevermind",device:"Stereo",mediaType:"CD",season:"Fall"},{year:1991,age:10,artist:"Pearl Jam",album:"Ten",device:"Boom Box",mediaType:"CD",season:"Fall"},{year:1991,age:10,artist:"Harry Connick Jr.",album:"Blue Light, Red light",device:"Boom Box",mediaType:"CD",season:"Winter"},{year:1992,age:11,artist:"Pearl Jam",album:"Vs. ",device:"Boom Box",mediaType:"CD",season:"Spring"},{year:1993,age:12,artist:"Frank Sinatra",album:"Duets",device:"Stereo",mediaType:"CD",season:"Fall"},{year:1993,age:12,artist:"Carly Simon",album:"Greatest Hits",device:"Car",mediaType:"Tape",season:"Summer"},{year:1994,age:13,artist:"Weezer",album:"Weezer (Blue Album)",device:"Stereo",mediaType:"CD",season:"Spring"},{year:1994,age:13,artist:"Green Day",album:"Dookie",device:"Stereo",mediaType:"CD",season:"Summer"},{year:1995,age:14,artist:"Nirvana",album:"Unplugged in New York",device:"Stereo",mediaType:"CD",season:"Fall"},{year:1995,age:14,artist:"The Beatles",album:"Revolver",device:"Stereo",mediaType:"CD",season:"Season"},{year:1995,age:14,artist:"Pearl Jam",album:"Vitalogy",device:"Stereo",mediaType:"Media Type",season:"Summer"},{year:1995,age:14,artist:"Foo Fighters",album:"Foo Fighters",device:"Stereo",mediaType:"CD",season:"Winter"},{year:1995,age:14,artist:"Aerosmith",album:"Get A Grip",device:"Stereo",mediaType:"CD",season:"Spring"},{year:1996,age:15,artist:"Weezer",album:"Pinkerton",device:"Stereo",mediaType:"CD",season:"Fall"},{year:1996,age:15,artist:"The Beatles",album:"Abbey Road",device:"Headphones",mediaType:"CD",season:"Summer"},{year:1996,age:15,artist:"The Presidents Of The Unites States Of America",album:"The Presidents Of The Unites States Of America",device:"Listening Device",mediaType:"CD",season:"Summer"},{year:1997,age:16,artist:"Eric Clapton",album:"Unplugged",device:"Stereo",mediaType:"CD",season:"Fall"},{year:1997,age:16,artist:"Ben Folds Five",album:"Ben Folds Five",device:"Stereo",mediaType:"CD",season:"Summer"},{year:1997,age:16,artist:"Ben Folds Five",album:"Whatever and Ever Amen",device:"Stereo",mediaType:"CD",season:"Summer"},{year:1997,age:16,artist:"Everclear",album:"So Much for the Afterglow",device:"Stereo",mediaType:"CD",season:"Summer"},{year:1997,age:16,artist:"Eric Clapton",album:"Time Pieces",device:"Stereo",mediaType:"CD",season:"Summer"},{year:1997,age:16,artist:"Cake",album:"Fashion Nugget",device:"Car",mediaType:"CD",season:"Summer"},{year:1997,age:16,artist:"Stone Temple Pilots",album:"Tiny Music...Songs from the Vatican Gift Shop",device:"Stereo",mediaType:"CD",season:"Winter"},{year:1997,age:16,artist:"Radiohead",album:"OK Computer",device:"Stereo",mediaType:"CD",season:"Winter"},{year:1998,age:17,artist:"Ben Folds Five",album:"The Unauthorized Biography of Rheinhold Messner",device:"Stereo",mediaType:"CD",season:"Spring"},{year:1998,age:17,artist:"Wyclef Jean",album:"The Carnival",device:"Stereo",mediaType:"CD",season:"Summer"},{year:1998,age:17,artist:"Beck",album:"Mutations",device:"Stereo",mediaType:"CD",season:"Winter"},{year:1998,age:17,artist:"Dave Matthews Band",album:"Before These Crowded Streets",device:"Stereo",mediaType:"CD",season:"Winter"},{year:1998,age:17,artist:"The Rentals",album:"Return of the Rentals",device:"Car",mediaType:"CD",season:"Winter"},{year:1998,age:17,artist:"that dog. ",album:"Retreat From The Sun",device:"Stereo",mediaType:"Mp3",season:"Summer"},{year:1999,age:18,artist:"The Rentals",album:"Seven More Minutes",device:"Car",mediaType:"CD",season:"Spring"},{year:1999,age:18,artist:"Blink 182",album:"Enema of the State",device:"Car",mediaType:"CD",season:"Summer"},{year:1999,age:18,artist:"Fountains of Wayne",album:"Utopia Parkway",device:"Car",mediaType:"CD",season:"Summer"},{year:1999,age:18,artist:"Dave Matthews and Tim Reynolds",album:"Live at Luther College",device:"Stereo",mediaType:"CD",season:"Winter"},{year:2000,age:19,artist:"Chet Baker",album:"Chet",device:"Car",mediaType:"CD",season:"Fall"},{year:2000,age:19,artist:"Pearl Jam",album:"Live on Two Legs",device:"Stereo",mediaType:"CD",season:"Spring"},{year:2000,age:19,artist:"Sublime",album:"40 oz. to freedom",device:"Stereo",mediaType:"CD",season:"Summer"},{year:2000,age:19,artist:"Sublime",album:"Sublime",device:"Boom Box",mediaType:"CD",season:"Summer"},{year:2000,age:19,artist:"Dave Matthews Band",album:"Everyday",device:"Stereo",mediaType:"CD",season:"Winter"},{year:2001,age:20,artist:"Jay-Z",album:"Blueprint ",device:"Car",mediaType:"CD",season:"Fall"},{year:2001,age:20,artist:"John Mayer",album:"Room for squares ",device:"Car",mediaType:"Mp3",season:"Fall"},{year:2001,age:20,artist:"Jay-Z",album:"Reasonable Doubt",device:"Stereo",mediaType:"Mp3",season:"Spring"},{year:2001,age:20,artist:"Bobby Darin",album:"Greatest Hits",device:"Car",mediaType:"CD",season:"Spring"},{year:2001,age:20,artist:"Aimee Mann",album:"Magnolia Soundtrack",device:"Stereo",mediaType:"Mp3",season:"Spring"},{year:2001,age:20,artist:"Ben Folds Five",album:"Rockin' the Suburbs",device:"Car",mediaType:"Mp3",season:"Spring"},{year:2001,age:20,artist:"Jay - Z",album:"Dynasty...Roc la Familia",device:"Stereo",mediaType:"CD",season:"Spring"},{year:2001,age:20,artist:"Nas",album:"Stillmatic",device:"Car",mediaType:"CD",season:"Summer"},{year:2001,age:20,artist:"Ghostface Killah",album:"Bulletproof Wallets",device:"Car",mediaType:"CD",season:"Winter"},{year:2001,age:20,artist:"Radiohead",album:"Kid A",device:"Stereo",mediaType:"CD",season:"Winter"},{year:2001,age:20,artist:"Pink Floyd",album:"Dark Side of the Moon",device:"Stereo",mediaType:"CD",season:"Winter"},{year:2002,age:21,artist:"Blink 182",album:"Take off your pants and Jacket",device:"Car",mediaType:"CD",season:"Fall"},{year:2002,age:21,artist:"Cake",album:"Comfort Eagle",device:"Car",mediaType:"CD",season:"Fall"},{year:2002,age:21,artist:"Dashboard Confessional",album:"Swiss Army Romance",device:"Car",mediaType:"CD",season:"Spring"},{year:2002,age:21,artist:"Jimmy Eat World",album:"Bleed American",device:"Car",mediaType:"CD",season:"Spring"},{year:2002,age:21,artist:"The Strokes",album:"Is This It?",device:"Headphones",mediaType:"CD",season:"Summer"},{year:2002,age:21,artist:"Norah Jones",album:"Feels like Home",device:"Car",mediaType:"CD",season:"Summer"},{year:2003,age:22,artist:"Dexter Gordon",album:"Dexter Calling",device:"Stereo",mediaType:"CD",season:"Summer"},{year:2003,age:22,artist:"Ben Folds",album:"Speed Graphic",device:"Headphones",mediaType:"Mp3",season:"Summer"},{year:2004,age:23,artist:"Arcade Fire",album:"Funeral",device:"Stereo",mediaType:"Mp3",season:"Fall"},{year:2004,age:23,artist:"Mates of State",album:"Team Boo",device:"Headphones",mediaType:"Mp3",season:"Fall"},{year:2004,age:23,artist:"The Decemberists",album:"Castaways and Cutouts",device:"Car",mediaType:"Mp3",season:"Spring"},{year:2004,age:23,artist:"The Decemberists",album:"Her Majesty The Decemberists",device:"Car",mediaType:"Mp3",season:"Spring"},{year:2004,age:23,artist:"The Shins",album:"Kissing the Lipless",device:"Headphones",mediaType:"CD",season:"Summer"},{year:2004,age:23,artist:"The Flaming Lips",album:"Yoshimi Battles the Pink Robots",device:"Headphones",mediaType:"Mp3",season:"Summer"},{year:2004,age:23,artist:"Franz Ferdinand",album:"Franz Ferdinand",device:"Headphones",mediaType:"Mp3",season:"Summer"},{year:2004,age:23,artist:"Immortal Technique",album:"Revolutionary Vol. 2",device:"Headphones",mediaType:"CD",season:"Summer"},{year:2004,age:23,artist:"Interpol",album:"Turn on the Bright Lights",device:"Headphones",mediaType:"Mp3",season:"Summer"},{year:2004,age:23,artist:"Modest Mouse",album:"Good News for People who love Bad News",device:"Car",mediaType:"Mp3",season:"Summer"},{year:2004,age:23,artist:"Jon Brion",album:"Eternal Sunshine of the Spotless Mind",device:"Car",mediaType:"Mp3",season:"Winter"},{year:2004,age:23,artist:"Final Fantasy",album:"Has a Good Home",device:"Headphones",mediaType:"Mp3",season:"Winter"},{year:2005,age:24,artist:"Jon Brion",album:"Meaningless",device:"Headphones",mediaType:"Mp3",season:"Fall"},{year:2005,age:24,artist:"Ben Folds",album:"Songs for Silverman",device:"Headphones",mediaType:"Mp3",season:"Spring"},{year:2005,age:24,artist:"Philip Glass",album:"Einstein on the Beach",device:"Headphones",mediaType:"Mp3",season:"Spring"},{year:2005,age:24,artist:"Apparat Organ Quartet",album:"Apparat Organ Quartet",device:"Headphones",mediaType:"Mp3",season:"Spring"},{year:2005,age:24,artist:"Deseparacedios",album:"Read Music/Speak Spanish",device:"Headphones",mediaType:"Mp3",season:"Summer"},{year:2005,age:24,artist:"Kanye West",album:"Late Registration",device:"Stereo",mediaType:"Mp3",season:"Summer"},{year:2005,age:24,artist:"Clap Your Hands Say Yeah!",album:"Clap Your Hands Say Yeah!",device:"Car",mediaType:"Mp3",season:"Summer"},{year:2005,age:24,artist:"Bright Eyes",album:"I'm wide awake, It's Morning",device:"Headphones",mediaType:"Mp3",season:"Winter"},{year:2005,age:24,artist:"Broken Social Scene",album:"You Forget it in People",device:"Headphones",mediaType:"Mp3",season:"Winter"},{year:2005,age:24,artist:"Danger Doom",album:"The Mouse & The Mask",device:"Headphones",mediaType:"Mp3",season:"Winter"},{year:2005,age:24,artist:"Bob Dylan",album:"Bringing it All Back Home",device:"Headphones",mediaType:"Mp3",season:"Winter"},{year:2005,age:24,artist:"The Decemberists",album:"Picaresque",device:"Car",mediaType:"Mp3",season:"Winter"},{year:2005,age:24,artist:"Animal Collective",album:"Feels",device:"Headphones",mediaType:"Mp3",season:"Spring"},{year:2006,age:25,artist:"The Flaming Lips",album:"At War with the Mystics",device:"Headphones",mediaType:"Mp3",season:"Fall"},{year:2006,age:25,artist:"Gang Gang Dance",album:"God's Money",device:"Headphones",mediaType:"Mp3",season:"Fall"},{year:2006,age:25,artist:"Joanna Newsom",album:"The Milk-Eyed Mender",device:"Headphones",mediaType:"Mp3",season:"Spring"},{year:2006,age:25,artist:"Dr. Dog",album:"Easy Beat",device:"Stereo",mediaType:"Mp3",season:"Summer"},{year:2006,age:25,artist:"Dr. Dog",album:"Takers and Leavers",device:"Stereo",mediaType:"Mp3",season:"Summer"},{year:2006,age:25,artist:"Fiery Furnaces",album:"Bitter Tea",device:"Stereo",mediaType:"Mp3",season:"Summer"},{year:2006,age:25,artist:"Islands",album:"Return to the Sea",device:"Headphones",mediaType:"Mp3",season:"Winter"},{year:2006,age:25,artist:"TV on the Radio",album:"Return to Cookie Mountain",device:"Headphones",mediaType:"Mp3",season:"Winter"},{year:2007,age:26,artist:"Fountains of Wayne",album:"Traffic and Weather",device:"Headphones",mediaType:"Mp3",season:"Fall"},{year:2007,age:26,artist:"Band of Horses",album:"Everything All The Time",device:"Stereo",mediaType:"Mp3",season:"Fall"},{year:2007,age:26,artist:"Brian Eno",album:"Here Come the Warm Jets",device:"Headphones",mediaType:"Mp3",season:"Fall"},{year:2007,age:26,artist:"Radiohead",album:"In Rainbows",device:"Headphones",mediaType:"Mp3",season:"Fall"},{year:2007,age:26,artist:"Menomena",album:"I am the Fun Blame Monster!",device:"Headphones",mediaType:"Mp3",season:"Spring"},{year:2007,age:26,artist:"Arcade Fire",album:"Neon Bible",device:"Car",mediaType:"Mp3",season:"Winter"},{year:2008,age:27,artist:"The Dodos",album:"Visiter",device:"Headphones",mediaType:"Mp3",season:"Summer"},{year:2008,age:27,artist:"Fleet Foxes",album:"Fleet Foxes",device:"Headphones",mediaType:"Mp3",season:"Summer"},{year:2008,age:27,artist:"Bon Iver",album:"For Emma, Forever Ago",device:"Headphones",mediaType:"Mp3",season:"Summer"},{year:2008,age:27,artist:"Final Fantasy",album:"Spectrum 14th century",device:"Headphones",mediaType:"Mp3",season:"Summer"},{year:2008,age:27,artist:"The Tallest Man on Earth",album:"Shallow Graves",device:"Headphones",mediaType:"Mp3",season:"Winter"},{year:2008,age:27,artist:"Philip Glass",album:"Glassworks",device:"Headphones",mediaType:"Mp3",season:"Winter"},{year:2009,age:28,artist:"Julian Casablancas",album:"Phrazes for the Young",device:"Headphones",mediaType:"Mp3",season:"Fall"},{year:2009,age:28,artist:"Japandroids",album:"Post Nothing",device:"Headphones",mediaType:"Mp3",season:"Spring"},{year:2009,age:28,artist:"Chad VanGaalen",album:"Soft Airplane",device:"Headphones",mediaType:"Mp3",season:"Summer"},{year:2009,age:28,artist:"Passion Pit",album:"Manners",device:"Car",mediaType:"Mp3",season:"Summer"},{year:2009,age:28,artist:"Chad VanGaalen",album:"Soft Airplane",device:"Headphones",mediaType:"Mp3",season:"Summer"},{year:2009,age:28,artist:"Passion Pit",album:"Manners",device:"Car",mediaType:"CD",season:"Summer"},{year:2010,age:29,artist:"Beach House",album:"Teen Dream",device:"Car",mediaType:"Mp3",season:"Spring"},{year:2010,age:29,artist:"Arcade Fire",album:"The Suburbs",device:"Headphones",mediaType:"Mp3",season:"Spring"},{year:2010,age:29,artist:"Dirty Projectors",album:"Bitte Orca",device:"Car",mediaType:"Mp3",season:"Summer"},{year:2010,age:29,artist:"Bruce Springsteen",album:"Born To Run",device:"Headphones",mediaType:"Mp3",season:"Summer"},{year:2010,age:29,artist:"They Might be Giants",album:"Lincoln",device:"Stereo",mediaType:"Mp3",season:"Summer"},{year:2011,age:30,artist:"Fountains of Wayne",album:"Sky Full of Holes",device:"Headphones",mediaType:"Spotify",season:"Fall"},{year:2011,age:30,artist:"St. Vincent",album:"Strange Mercy",device:"Stereo",mediaType:"Spotify",season:"Fall"},{year:2011,age:30,artist:"Tune Yards",album:"WHOKILL",device:"Stereo",mediaType:"Spotify",season:"Summer"},{year:2011,age:30,artist:"Jay - Z & Kanye West",album:"Watch The Throne",device:"Headphones",mediaType:"Spotify",season:"Winter"},{year:2012,age:31,artist:"Ben Folds Five",album:"The Sound of the Life of the Mind",device:"Headphones",mediaType:"Spotify",season:"Fall"},{year:2012,age:31,artist:"Carole King",album:"Tapestry",device:"Headphones",mediaType:"Spotify",season:"Fall"},{year:2012,age:31,artist:"MGMT",album:"Congratualtions",device:"Car",mediaType:"Mp3",season:"Spring"},{year:2012,age:31,artist:"DIrty Projectors",album:"Swing Lo Magellan",device:"Headphones",mediaType:"Spotify",season:"Summer"},{year:2012,age:31,artist:"Japandroids",album:"Celebration Rock",device:"Headphones",mediaType:"Spotify",season:"Summer"},{year:2012,age:31,artist:"Washed Out",album:"Within and Without",device:"Headphones",mediaType:"Spotify",season:"Summer"},{year:2012,age:31,artist:"Frank Sinatra",album:"Watertown",device:"Stereo",mediaType:"Spotify",season:"Winter"},{year:2013,age:32,artist:"Paul McCartney",album:"RAM",device:"Stereo",mediaType:"Spotify",season:"Summer"},{year:2013,age:32,artist:"Kanye West",album:"Yeezus",device:"Headphones",mediaType:"Spotify",season:"Summer"},{year:2013,age:32,artist:"Vampire Weekend",album:"Modern Vampires in the City",device:"Listening Device",mediaType:"Spotify",season:"Summer"},{year:2013,age:32,artist:"Jay - Z",album:"Magna Carter.... Holy grail",device:"Headphones",mediaType:"Spotify",season:"Summer"},{year:2013,age:32,artist:"Kendrick Lamar",album:"Good Kid m. A. A. D. City",device:"Headphones",mediaType:"Spotify",season:"Winter"},{year:2013,age:32,artist:"Frank Ocean",album:"Channel Orange",device:"Headphones",mediaType:"Spotify",season:"Winter"},{year:2014,age:33,artist:"Biff Rose",album:"Fill your heart with Biff",device:"Listening Device",mediaType:"Spotify",season:"Spring"},{year:2014,age:33,artist:"Arcade Fire",album:"Reflektor",device:"Headphones",mediaType:"Spotify",season:"Winter"},{year:2014,age:33,artist:"Paul McCartney",album:"Band on the Run",device:"Boom Box",mediaType:"Spotify",season:"Winter"},{year:2015,age:34,artist:"Father John Misty",album:"I love you, Honeybear",device:"Headphones",mediaType:"Spotify",season:"Spring"},{year:2015,age:34,artist:"Tame Impala",album:"Currents",device:"Headphones",mediaType:"Spotify",season:"Summer"},{year:2015,age:34,artist:"Lil' Dicky",album:"Professional Rapper",device:"Headphones",mediaType:"Spotify",season:"Summer"},{year:2016,age:35,artist:"Kanye West",album:"The Life of Pablo",device:"Headphones",mediaType:"Mp3",season:"Winter"},{year:2016,age:35,artist:"Jean Sibelius",album:"Symphony No. 2",device:"Headphones",mediaType:"Spotify",season:"Spring"},{year:2016,age:35,artist:"Weezer",album:"Weezer (white album)",device:"Headphones",mediaType:"Spotify",season:"Spring"},{year:2016,age:35,artist:"Run The Jewels",album:"Run The Jewels 1",device:"Listening Device",mediaType:"Media Type",season:"Season"},{year:2016,age:35,artist:"Run The Jewels",album:"Run The Jewels 2",device:"Listening Device",mediaType:"Media Type",season:"Season"},{year:2016,age:35,artist:"Run The Jewels",album:"Run The Jewels 3",device:"Listening Device",mediaType:"Media Type",season:"Season"},{year:2017,age:36,artist:"Mac Demarco ",album:"This Old Dog",device:"Headphones",mediaType:"Spotify",season:"Summer"},{year:2017,age:36,artist:"Mac Demarco ",album:"2",device:"Car",mediaType:"Spotify",season:"Summer"},{year:2017,age:36,artist:"St. Vincent",album:"MASSEDUCTION",device:"Car",mediaType:"Spotify",season:"Fall"},{year:2018,age:37,artist:"Jim James",album:"Uniform Distortion",device:"Car",mediaType:"Spotify",season:"Summer"},{year:2018,age:37,artist:"MGMT",album:"Little Dark Age",device:"Headphones",mediaType:"Spotify",season:"Season"},{year:2018,age:37,artist:"Mild High Club",album:"Timeline",device:"Listening Device",mediaType:"Media Type",season:"Season"},{year:2019,age:38,artist:"The Zombies",album:"Odyssey and Oracle",device:"Headphones",mediaType:"Spotify",season:"Spring"},{year:2019,age:38,artist:"Harry Nillson",album:"Nillson Schmillson",device:"Headphones",mediaType:"Spotify",season:"Spring"},{year:2019,age:38,artist:"Vampire Weekend ",album:"Father of the Bride",device:"Headphones",mediaType:"Spotify",season:"Spring"},{year:2019,age:38,artist:"Father John Misty",album:"Pure Comedy",device:"Headphones",mediaType:"Spotify",season:"Fall"},{year:2019,age:38,artist:"Kanye West",album:"Jesus Is King ",device:"Headphones",mediaType:"Spotify",season:"Fall"}
+            ];
+
+            // Fetch album art
+            const fetchAlbumArt = async (artist, album) => {
+                const key = `${artist}-${album}`;
+                if (albumArt[key]) return;
+
+                try {
+                    const mbResponse = await fetch(
+                        `https://musicbrainz.org/ws/2/release?query=artist:"${encodeURIComponent(artist)}" release:"${encodeURIComponent(album)}"&fmt=json`
+                    );
+                    const mbData = await mbResponse.json();
+                    
+                    if (mbData.releases && mbData.releases.length > 0) {
+                        const releaseId = mbData.releases[0].id;
+                        const artUrl = `https://coverartarchive.org/release/${releaseId}/front-500`;
+                        
+                        setAlbumArt(prev => ({ ...prev, [key]: artUrl }));
+                    }
+                } catch (e) {
+                    console.log(`Art not found for ${artist} - ${album}`);
+                }
+            };
+
+            // Open Wikipedia
+            const openWikipedia = async (artist, album) => {
+                try {
+                    const response = await fetch(
+                        `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(album + ' ' + artist)}&format=json&origin=*`
+                    );
+                    const data = await response.json();
+                    
+                    if (data.query.search && data.query.search.length > 0) {
+                        const pageTitle = data.query.search[0].title;
+                        window.open(`https://en.wikipedia.org/wiki/${pageTitle.replace(/ /g, '_')}`, '_blank');
+                    } else {
+                        window.open(`https://en.wikipedia.org/wiki/${album.replace(/ /g, '_')}`, '_blank');
+                    }
+                } catch (error) {
+                    window.open(`https://en.wikipedia.org/wiki/${album.replace(/ /g, '_')}`, '_blank');
+                }
+            };
+
+            useEffect(() => {
+                const sorted = [...allData].sort((a, b) => a.year - b.year);
+                setTimelineData(sorted);
+                setFilteredData(sorted);
+                
+                // Fetch art for all
+                sorted.forEach(item => {
+                    fetchAlbumArt(item.artist, item.album);
+                });
+            }, []);
+
+            const artists = ['All', ...new Set(timelineData.map(d => d.artist))];
+
+            const handleFilter = (artist) => {
+                setSelectedArtist(artist);
+                if (artist === 'All') {
+                    setFilteredData(timelineData);
+                } else {
+                    setFilteredData(timelineData.filter(d => d.artist === artist));
+                }
+            };
+
+            const scroll = (direction) => {
+                const container = document.getElementById('timeline-container');
+                if (container) {
+                    const scrollAmount = 400;
+                    container.scrollBy({
+                        left: direction === 'right' ? scrollAmount : -scrollAmount,
+                        behavior: 'smooth',
+                    });
+                }
+            };
+
+            const getColorByDecade = (year) => {
+                if (year < 1990) return 'from-purple-500 to-blue-500';
+                if (year < 2000) return 'from-pink-500 to-red-500';
+                if (year < 2010) return 'from-emerald-500 to-teal-500';
+                return 'from-cyan-500 to-blue-500';
+            };
+
+            return (
+                <div className="w-full bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 min-h-screen p-8">
+                    <div className="max-w-7xl mx-auto">
+                        <div className="text-center mb-12">
+                            <h1 className="text-5xl font-bold text-white mb-4">Music Timeline</h1>
+                            <p className="text-slate-400 text-lg">Explore your music listening journey through the years</p>
+                        </div>
+
+                        <div className="flex justify-center flex-wrap gap-2 mb-12">
+                            {artists.slice(0, 8).map((artist) => (
+                                <button
+                                    key={artist}
+                                    onClick={() => handleFilter(artist)}
+                                    className={`px-4 py-2 rounded-full font-semibold transition-all ${
+                                        selectedArtist === artist
+                                            ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
+                                            : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                                    }`}
+                                >
+                                    {artist}
+                                </button>
+                            ))}
+                        </div>
+
+                        <div className="relative">
+                            <button
+                                onClick={() => scroll('left')}
+                                className="absolute left-0 top-1/2 -translate-y-1/2 z-20 bg-purple-600 hover:bg-purple-700 text-white p-3 rounded-full shadow-lg transition"
+                            >
+                                <ChevronLeft size={24} />
+                            </button>
+                            <button
+                                onClick={() => scroll('right')}
+                                className="absolute right-0 top-1/2 -translate-y-1/2 z-20 bg-purple-600 hover:bg-purple-700 text-white p-3 rounded-full shadow-lg transition"
+                            >
+                                <ChevronRight size={24} />
+                            </button>
+
+                            <div
+                                id="timeline-container"
+                                className="overflow-x-auto scroll-smooth pb-4"
+                                style={{ scrollBehavior: 'smooth' }}
+                            >
+                                <div className="flex items-end justify-start min-w-max gap-8 px-16 py-8">
+                                    <div className="absolute left-0 right-0 top-1/2 h-1 bg-gradient-to-r from-purple-500 via-pink-500 to-teal-500" />
+
+                                    {filteredData.map((event, index) => (
+                                        <div key={index} className="relative">
+                                            <div className="flex flex-col items-center">
+                                                <button
+                                                    className={`w-12 h-12 rounded-full bg-gradient-to-br ${getColorByDecade(event.year)} shadow-lg hover:w-16 hover:h-16 transition-all duration-300 cursor-pointer flex items-center justify-center`}
+                                                >
+                                                    <span className="text-white font-bold text-sm">{event.year}</span>
+                                                </button>
+
+                                                <div 
+                                                    className="mt-6 w-48 bg-slate-700 rounded-lg overflow-hidden shadow-xl hover:shadow-2xl transition border border-slate-600 hover:border-purple-500 cursor-pointer"
+                                                    onClick={() => openWikipedia(event.artist, event.album)}
+                                                >
+                                                    <div className="w-full h-48 bg-gradient-to-br from-slate-600 to-slate-800 relative overflow-hidden">
+                                                        {albumArt[`${event.artist}-${event.album}`] ? (
+                                                            <img 
+                                                                src={albumArt[`${event.artist}-${event.album}`]} 
+                                                                alt={event.album}
+                                                                className="w-full h-full object-cover hover:scale-110 transition-transform duration-300"
+                                                                onError={(e) => { e.target.style.display = 'none'; }}
+                                                            />
+                                                        ) : (
+                                                            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-600 to-pink-600">
+                                                                <span className="text-white text-2xl">♪</span>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    <div className="p-3">
+                                                        <p className="font-bold text-white mb-1 line-clamp-2 text-sm">{event.album}</p>
+                                                        <p className="text-purple-400 text-xs mb-2">{event.artist}</p>
+                                                        <div className="flex flex-wrap gap-1">
+                                                            <span className="text-xs bg-slate-600 text-slate-200 px-1.5 py-0.5 rounded">Age {event.age}</span>
+                                                            <span className="text-xs bg-slate-600 text-slate-200 px-1.5 py-0.5 rounded">{event.device}</span>
+                                                        </div>
+                                                    </div>
+                                                    <div className="px-3 py-2 bg-slate-800 text-center">
+                                                        <p className="text-xs text-purple-300">Wikipedia →</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<MusicTimeline />);
+    </script>
+</body>
+</html>
